@@ -2,13 +2,7 @@
 #include <vector>
 #include <cmath>
 #include "excerpt.h"
-
 using namespace std;
-
-enum {
-    A = 0, B, C, D
-};
-
 enum {
     x1 = 0, x2, x3
 };
@@ -17,7 +11,6 @@ template<typename T>
 int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
-
 template<typename fp_t>
 int solve(vector<fp_t> &coeff, vector<fp_t> &roots) {
     fp_t A = coeff[3];
@@ -43,10 +36,7 @@ int solve(vector<fp_t> &coeff, vector<fp_t> &roots) {
         roots[x2] = p / B - q / B;
         return 2;
     }
-
-    return -1;
 }
-
 int main() {
     int p = 3;
     vector<fp_t> coefficients(p+1);
@@ -55,8 +45,7 @@ int main() {
     generate_polynomial<fp_t>(p, 0, p, 0, 8.0L/5, -5, 5.0L, roots, coefficients);
     fp_t dev;
     cout << solve(coefficients, output) << endl;
-    int err = compare_roots<fp_t>(p,p,output,roots,dev);
-
+    cout<<compare_roots<fp_t>(p,p,output,roots,dev)<<endl;
     cout<<"dev:"<<dev<<endl<<"roots:";
     for (float root : roots) {
         cout<<setprecision(numeric_limits<fp_t>::digits10 + 1)<< root << ' ';
@@ -65,6 +54,5 @@ int main() {
     for (float root : output) {
         cout<<setprecision(numeric_limits<fp_t>::digits10 + 1)<< root << ' ';
     }
-
     return 0;
 }
