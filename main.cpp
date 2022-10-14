@@ -18,7 +18,7 @@ int solve(vector<fp_t> &coeff, vector<fp_t> &roots) {
     fp_t C = coeff[1];
     fp_t D = coeff[0];
     roots[x3] = A != 0 ? (abs(B) + abs(C) + abs(D))/A : 0;
-    auto p = coeff[C] / static_cast<fp_t>(-2L);
+    auto p = C / static_cast<fp_t>(-2L);
     auto q = sqrt(p * p - B * D);
     if (q >= 0) {
         auto r = p + sgn(p) * q;
@@ -54,5 +54,6 @@ int main() {
     for (float root : output) {
         cout<<setprecision(numeric_limits<fp_t>::digits10 + 1)<< root << ' ';
     }
+
     return 0;
 }
