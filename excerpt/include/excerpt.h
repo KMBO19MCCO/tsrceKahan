@@ -7,6 +7,7 @@
 #include <iostream>
 #include <iomanip>
 #include <vector>
+#include <complex>
 
 #ifndef EXCERPT_EXCERPT_H
 #define EXCERPT_EXCERPT_H
@@ -44,5 +45,11 @@ int generate_polynomial(
         std::vector<fp_t> &roots, // storage where to put the roots; size should exceed P-1
         std::vector<fp_t> &coefficients);
 
+template<typename fp_t>
+int compare_roots_complex(unsigned N_roots_to_check, // number of roots in roots_to_check
+                          unsigned N_roots_ground_truth,  // number of roots in roots_ground_truth
+                          std::vector<std::complex<fp_t>> &roots_to_check, // one should take into account only first (N_roots_to_check) rots
+                          std::vector<fp_t> &roots_ground_truth, // one should take into account only first (N_roots_ground_truth) rots
+                          fp_t &max_deviation);
 
 #endif //EXCERPT_EXCERPT_H
