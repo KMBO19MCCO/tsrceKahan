@@ -16,52 +16,48 @@ typedef float fp_t;
 
 template<typename fp_t>
 void solve(vector<fp_t> &coefficients, vector<complex<fp_t>> &roots) {
-    complex<fp_t> A = coefficients[3];
-    complex<fp_t> B = coefficients[2];
-    complex<fp_t> C = coefficients[1];
-    complex<fp_t> D = coefficients[0];
+    auto A = coefficients[3];
+    auto B = coefficients[2];
+    auto C = coefficients[1];
+    auto D = coefficients[0];
 
-    if (A.real() == 0) {
-        roots[x3] = (abs(B) + abs(C) + abs(D)) / A;
-        auto p = -C.real() / 2;
-        auto q = sqrt(p * p - B * D);
-        if (std::numeric_limits<fp_t>::epsilon() > abs(q.imag())) {
-            auto r = p + copysign(q.real(), 1) * q.real();
-            if (r == 0) {
+    if (std::numeric_limits<fp_t>::epsilon() > abs(A)) {
+//        roots[x3] = (abs(B) + abs(C) + abs(D)) / A;
+        roots[x3] = std::numeric_limits<fp_t>::epsilon(); // maybe framework bug
+        auto p = -C / 2;
+        auto q = sqrt(fma(p, p, -B * D));
+        if (std::numeric_limits<fp_t>::epsilon() > abs(q)) {
+            auto r = fma(copysign(q, 1), q, p);
+            if (std::numeric_limits<fp_t>::epsilon() > abs(r)) {
                 roots[x1] = D / B;
                 roots[x2] = -roots[x1];
                 return;
             } else {
-                roots[x1] = D.real() / r;
-                roots[x2] = r / B.real();
+                roots[x1] = D / r;
+                roots[x2] = r / B;
                 return;
             }
         } else {
-            roots[x1] = p / B + q / B;
-            roots[x2] = p / B - q / B;
+            roots[x1] = p + q / B;
+            roots[x2] = p - q / B;
             return;
         }
     } else {
-        auto b = -(B / A).real() / 3;
-        auto c = (C / A).real();
+        auto b = -B / (A * 3);
+        auto c = C / A;
         auto d = D / A;
         auto s = 3 * fma(b, b, -c);
-        auto t = fma(-b, b, s) * b -d;
-//        auto s = 3 * b * b - c;
-//        auto t = (s - b * b) * b - d;
+        auto t = fma(fma(-b, b, s), b, -d);
         complex<fp_t> y1, y2;
         if (s == 0) {
             y1 = pow(-t, static_cast<fp_t>(1.0) / 3.0);
-            y2 = static_cast<complex<fp_t>>(y1) * (static_cast<complex<fp_t>>(-1) +
-                                                   static_cast<complex<fp_t>>(I) *
-                                                   static_cast<complex<fp_t>>(sqrt(3))) /
-                 static_cast<complex<fp_t>>(2);
+            y2 = y1 * static_cast<fp_t>(((I) * sqrt(3) - 1) / 2);
         } else {
-            auto u = sqrt(static_cast<complex<fp_t>>(4) * s / static_cast<complex<fp_t>>(3));
-            auto v = asin(static_cast<complex<fp_t>>(3) * t / (s * u * static_cast<complex<fp_t>>(3)));
-            auto w = static_cast<complex<fp_t>>(numbers::pi_v<fp_t> / 3) - v;
-            y1 = u * sin(v);
-            y2 = u * sin(w);
+            auto u = sqrt(static_cast<complex<fp_t>>(s / 3) * static_cast<fp_t>(4));
+            auto v = asin(static_cast<complex<fp_t>>(t) / (s * u));
+            auto w = (numbers::pi_v<fp_t> / 3) - v;
+            y1 = sin(v) * u;
+            y2 = sin(w) * u;
         }
         roots[x1] = b - y1;
         roots[x2] = b - y2;
