@@ -1,8 +1,8 @@
-#include <iostream>
-#include <vector>
-#include <cmath>
 #include <omp.h>
-#include <complex.h>
+#include <cmath>
+#include <vector>
+#include <complex>
+#include <iostream>
 #include "excerpt.h"
 
 #define MAX_DISTANCE 10e-5
@@ -27,7 +27,7 @@ void solve(vector<fp_t> &coefficients, vector<complex<fp_t>> &roots) {
         auto p = -C / 2;
         auto q = sqrt(fma(p, p, -B * D));
         if (std::numeric_limits<fp_t>::epsilon() > abs(q)) {
-            auto r = fma(copysign(q, 1), q, p);
+            auto r = fma(copysign(1, q), q, p);
             if (std::numeric_limits<fp_t>::epsilon() > abs(r)) {
                 roots[x1] = D / B;
                 roots[x2] = -roots[x1];
@@ -51,7 +51,7 @@ void solve(vector<fp_t> &coefficients, vector<complex<fp_t>> &roots) {
         complex<fp_t> y1, y2;
         if (s == 0) {
             y1 = pow(-t, static_cast<fp_t>(1.0) / 3.0);
-            y2 = y1 * static_cast<fp_t>(((I) * sqrt(3) - 1) / 2);
+            y2 = y1 * static_cast<fp_t>((1.iF * sqrt(3) - 1) / 2);
         } else {
             auto u = sqrt(static_cast<complex<fp_t>>(s / 3) * static_cast<fp_t>(4));
             auto v = asin(static_cast<complex<fp_t>>(t) / (s * u));
