@@ -70,14 +70,15 @@ void solve(vector<fp_t> &coefficients, vector<complex<fp_t>> &roots) {
 }
 
 template<typename fp_t>
-auto testPolynomial(unsigned int roots_count, vector<complex<fp_t>> &roots_computed) {
+auto testPolynomial(unsigned int roots_count, vector<fp_t> &coeffs) {
     fp_t max_absolute_error, max_relative_error;
     vector<fp_t> roots(roots_count), coefficients(roots_count + 1);
     generate_polynomial<fp_t>(roots_count, 0, roots_count, 0, MAX_DISTANCE, -1, 1, roots, coefficients);
-//    vector<complex<fp_t>> roots_computed(roots_count);
+    vector<complex<fp_t>> roots_computed(roots_count);
     solve<fp_t>(coefficients, roots_computed);
     compare_roots_complex<fp_t>(roots_computed.size(), roots.size(), roots_computed, roots,
                                 max_absolute_error, max_relative_error);
+    coeffs = coefficients;
     return max_absolute_error;
 }
 
@@ -99,7 +100,7 @@ int main() {
 #pragma omp parallel for
     for (auto i = 0; i < 1000'1000; ++i) {
         auto thread_id = omp_get_thread_num();
-        vector<complex<fp_t>> roots_computed(3);
+        vector<fp_t> roots_computed(4);
         auto deviation = testPolynomial<fp_t>(3, roots_computed);
         if (deviation > deviations[thread_id]) {
             deviations[thread_id] = deviation;
