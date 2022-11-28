@@ -23,7 +23,8 @@ void solve(vector<fp_t> &coefficients, vector<complex<fp_t>> &roots) {
 
     if (std::numeric_limits<fp_t>::epsilon() > abs(A)) {
 //        roots[x3] = (abs(B) + abs(C) + abs(D)) / A;
-        roots[x3] = std::numeric_limits<fp_t>::epsilon(); // maybe framework bug
+//        roots[x3] = std::numeric_limits<fp_t>::epsilon(); // maybe framework bug
+        roots[x3] = 0; // maybe framework bug
         auto p = -C / 2;
         auto q = sqrt(fma(p, p, -B * D));
         if (std::numeric_limits<fp_t>::epsilon() > abs(q)) {
@@ -39,7 +40,9 @@ void solve(vector<fp_t> &coefficients, vector<complex<fp_t>> &roots) {
             }
         } else {
             roots[x1] = p + q / B;
+//            roots[x1] = fma(static_cast<fp_t>(1LL) / B, p, p);
             roots[x2] = p - q / B;
+//            roots[x2] = fma(static_cast<fp_t>(1LL) / B, -p, p);
             return;
         }
     } else {
@@ -67,11 +70,11 @@ void solve(vector<fp_t> &coefficients, vector<complex<fp_t>> &roots) {
 }
 
 template<typename fp_t>
-auto testPolynomial(unsigned int roots_count) {
+auto testPolynomial(unsigned int roots_count, vector<complex<fp_t>> &roots_computed) {
     fp_t max_absolute_error, max_relative_error;
     vector<fp_t> roots(roots_count), coefficients(roots_count + 1);
     generate_polynomial<fp_t>(roots_count, 0, roots_count, 0, MAX_DISTANCE, -1, 1, roots, coefficients);
-    vector<complex<fp_t>> roots_computed(roots_count);
+//    vector<complex<fp_t>> roots_computed(roots_count);
     solve<fp_t>(coefficients, roots_computed);
     compare_roots_complex<fp_t>(roots_computed.size(), roots.size(), roots_computed, roots,
                                 max_absolute_error, max_relative_error);
@@ -96,9 +99,14 @@ int main() {
 #pragma omp parallel for
     for (auto i = 0; i < 1000'1000; ++i) {
         auto thread_id = omp_get_thread_num();
-        auto deviation = testPolynomial<fp_t>(3);
-        if (deviation > deviations[thread_id] and deviation != numeric_limits<fp_t>::infinity()) {
+        vector<complex<fp_t>> roots_computed(3);
+        auto deviation = testPolynomial<fp_t>(3, roots_computed);
+        if (deviation > deviations[thread_id]) {
             deviations[thread_id] = deviation;
+            for (auto root: roots_computed){
+                cout << root << ' ';
+            }
+            cout << endl;
         }
     }
 
