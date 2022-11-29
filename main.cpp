@@ -21,12 +21,12 @@ void solve(vector<fp_t> &coefficients, vector<complex<fp_t>> &roots) {
     auto C = coefficients[1];
     auto D = coefficients[0];
 
-    if (std::numeric_limits<fp_t>::epsilon() > abs(A)) {
+    if (std::numeric_limits<fp_t>::epsilon() > abs(A)) { // unused
 //        roots[x3] = (abs(B) + abs(C) + abs(D)) / A;
 //        roots[x3] = std::numeric_limits<fp_t>::epsilon(); // maybe framework bug
         roots[x3] = 0; // maybe framework bug
         auto p = -C / 2;
-        auto q = sqrt(fma(p, p, -B * D));
+        auto q = sqrt(pr_product_difference(p, p, B, D));
         if (std::numeric_limits<fp_t>::epsilon() > abs(q)) {
             auto r = fma(copysign(1, q), q, p);
             if (std::numeric_limits<fp_t>::epsilon() > abs(r)) {
@@ -49,18 +49,23 @@ void solve(vector<fp_t> &coefficients, vector<complex<fp_t>> &roots) {
         auto b = -B / (A * 3);
         auto c = C / A;
         auto d = D / A;
-        auto s = fma(static_cast<fp_t>(3.0L) * b, b, -c);
-        auto t = fma(fma(-b, b, s), b, -d);
+//        auto s = fma(static_cast<fp_t>(3.0L) * b, b, -c);
+        auto s = pr_product_difference(static_cast<fp_t>(3.0L) * b, b, c, static_cast<fp_t>(1.0L));
+//        auto t = fma(fma(-b, b, s), b, -d);
+        auto t = pr_product_difference(pr_product_difference(static_cast<fp_t>(1.0L), s, b, b), b, d,
+                                       static_cast<fp_t>(1.0L));
+//        auto t = pr_product_difference(b, s, b, b * b) - d;
         complex<fp_t> y1, y2;
         if (s == 0) {
-            y1 = pow(-t, static_cast<fp_t>(1.0L/3.0L));
+            y1 = pow(-t, static_cast<fp_t>(1.0L / 3.0L));
             y2 = y1 * static_cast<complex<fp_t>>((static_cast<complex<fp_t>>(1.iF) *
-                    static_cast<complex<fp_t>>(sqrt(3.0L)) - static_cast<complex<fp_t>>(1.0L))
-                            / static_cast<complex<fp_t>>(2.0L));
+                                                  static_cast<complex<fp_t>>(sqrt(3.0L)) -
+                                                  static_cast<complex<fp_t>>(1.0L))
+                                                 / static_cast<complex<fp_t>>(2.0L));
         } else {
-            auto u = sqrt(static_cast<complex<fp_t>>(s / static_cast<fp_t>(3.0L)) * static_cast<fp_t>(4.0L));
-            auto v = asin(static_cast<complex<fp_t>>(3*t) / (s * u))/static_cast<fp_t>(3.0L);
-            auto w = (numbers::pi_v<fp_t> / static_cast<fp_t>(3.0L)) * copysign(static_cast<fp_t>(1),v.real()) - v;
+            auto u = sqrt(static_cast<complex<fp_t>>(s / static_cast<fp_t>(3.0L) * static_cast<fp_t>(4.0L)));
+            auto v = asin(static_cast<complex<fp_t>>(3 * t) / (s * u)) / static_cast<fp_t>(3.0L);
+            auto w = (numbers::pi_v<fp_t> / static_cast<fp_t>(3.0L)) * copysign(static_cast<fp_t>(1.0L), v.real()) - v;
             y1 = sin(v) * u;
             y2 = sin(w) * u;
         }
@@ -83,7 +88,8 @@ auto testPolynomial(unsigned int roots_count, vector<fp_t> &coeffs) {
     coeffs = coefficients;
     return max_absolute_error;
 }
-void test2(){
+
+void test2() {
     unsigned int roots_count = 3;
     vector<fp_t> roots(roots_count), coefficients(roots_count + 1);
     vector<complex<fp_t>> roots_computed(roots_count);
@@ -94,6 +100,7 @@ void test2(){
     solve<fp_t>(coefficients, roots_computed);
     exit(-1);
 }
+
 int main() {
     fp_t max_deviation = 0;
     auto cores = omp_get_num_procs();
@@ -114,12 +121,12 @@ int main() {
         auto thread_id = omp_get_thread_num();
         vector<fp_t> roots_computed(4);
         auto deviation = testPolynomial<fp_t>(3, roots_computed);
-        if (deviation > deviations[thread_id]) {
+        if (deviation > deviations[thread_id] and !isinf(deviation)) {
             deviations[thread_id] = deviation;
-            for (auto root: roots_computed){
-                cout << root << ' ';
-            }
-            cout << endl;
+//            for (auto root: roots_computed){
+//                cout << root << ' ';
+//            }
+//            cout << endl;
         }
     }
 
