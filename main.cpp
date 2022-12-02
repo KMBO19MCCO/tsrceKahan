@@ -119,12 +119,8 @@ void solveReal(vector<fp_t> &coefficients, vector<fp_t> &roots) {
         auto b = -B / (A * static_cast<fp_t>(3.0L));
         auto c = C / A;
         auto d = D / A;
-//        auto s = fma(static_cast<fp_t>(3.0L) * b, b, -c);
-        auto s = pr_product_difference(static_cast<fp_t>(3.0L) * b, b, c, static_cast<fp_t>(1.0L));
-//        auto t = fma(fma(-b, b, s), b, -d);
-        auto t = pr_product_difference(pr_product_difference(static_cast<fp_t>(1.0L), s, b, b), b, d,
-                                       static_cast<fp_t>(1.0L));
-//        auto t = pr_product_difference(b, s, b, b * b) - d;
+        auto s = fma(static_cast<fp_t>(3.0L) * b, b, -c);
+        auto t = fma(fma(-b, b, s), b, -d);
         complex<fp_t> y1, y2;
         if (s == 0) {
             y1 = pow(-t, static_cast<fp_t>(1.0L / 3.0L));
