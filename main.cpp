@@ -3,7 +3,7 @@
 #include <vector>
 #include <complex>
 #include <iostream>
-#include "excerpt.h"
+#include <excerpt.h>
 
 #pragma ide diagnostic ignored "openmp-use-default-none"
 
@@ -131,12 +131,26 @@ void solveReal(vector<fp_t> &coefficients, vector<fp_t> &roots) {
         //roots[x2] = copysign(hypot(y2.real(), y2.imag()), y2.real());
         //roots[x1] = copysign(sqrt((y1*complex<fp_t>(y1.real(),-y1.imag())).real()),y1.real());
         //roots[x2] = copysign(sqrt((y2*complex<fp_t>(y2.real(),-y2.imag())).real()),y2.real());
-        roots[x1] = (y1*complex<fp_t>(0,-y1.imag())).real();
-        roots[x2] = (y2*complex<fp_t>(0,-y2.imag())).real();
-        //roots[x1] = y1.real();
-        //roots[x2] = y2.real();
+        //roots[x1] = (y1*complex<fp_t>(0,-y1.imag())).real();
+        //roots[x2] = (y2*complex<fp_t>(0,-y2.imag())).real();
+        roots[x1] = y1.real();
+        roots[x2] = y2.real();
         roots[x3] = roots[x1] + roots[x2] + b;
     }
+}
+template<typename fp_t>
+void comparator(vector<fp_t> &rootsTruth,vector<fp_t> &rootsOut,fp_t &absOut,fp_t &relOut){
+    double abs = 0.0;
+    double rel = 0.0;
+    for(int i = 0;i < rootsOut.size(); i++){
+        double absLoc = std::abs(double(rootsTruth[i])-double(rootsOut[i]));
+        abs = max(absLoc,abs);
+        rel = max(std::abs(
+                double(absLoc + std::numeric_limits<fp_t>::epsilon())/
+                double(max(rootsOut[i],rootsTruth[i]) + std::numeric_limits<fp_t>::epsilon())),abs);
+    }
+    absOut = abs;
+    relOut = rel;
 }
 
 template<typename fp_t>
@@ -151,8 +165,9 @@ auto testPolynomial(unsigned int roots_count, vector<fp_t> &coeffs) {
         coefficients[3] = 0;
     }
     solveReal<fp_t>(coefficients, roots_computed);
-    compare_roots<fp_t>(roots_computed.size(), roots.size(), roots_computed, roots,
-                        max_absolute_error, max_relative_error);
+    //compare_roots<fp_t>(roots_computed.size(), roots.size(), roots_computed, roots,
+    //                    max_absolute_error, max_relative_error);
+    comparator(roots,roots_computed,max_absolute_error,max_relative_error);
     coeffs = coefficients;
     return pair<fp_t, fp_t>(max_absolute_error, max_relative_error);
 }
@@ -168,6 +183,7 @@ void test2() {
     solve<fp_t>(coefficients, roots_computed);
     exit(-1);
 }
+
 
 int main() {
     fp_t max_deviation_abs = 0, max_deviation_rel = 0;
