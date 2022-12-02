@@ -70,8 +70,8 @@ void solve(vector<fp_t> &coefficients, vector<complex<fp_t>> &roots) {
         if (s == 0) {
             y1 = pow(-t, SCF(1.0L / 3.0L));
             roots[x1] = b - y1;
-            roots[x2] = fmaComplex(y1,-SCFC((SCFC(1.iF)*SCFC(sqrt(SCF(3.0L)))-SCFC(1.0L))/SCFC(2.0L)),b);
-            roots[x3] = y1 + fmaComplex(y1,SCFC((SCFC(1.iF)*SCFC(sqrt(SCF(3.0L)))-SCFC(1.0L))/SCFC(2.0L)),b);
+            roots[x2] = fmaComplex(y1, -SCFC((SCFC(1.iF) * SCFC(sqrt(SCF(3.0L))) - SCFC(1.0L)) / SCFC(2.0L)), b);
+            roots[x3] = y1 + fmaComplex(y1, SCFC((SCFC(1.iF) * SCFC(sqrt(SCF(3.0L))) - SCFC(1.0L)) / SCFC(2.0L)), b);
             return;
         } else {
             auto u = sqrt(SCFC(s / SCF(3.0L) * SCF(4.0L)));
@@ -97,7 +97,7 @@ void solveReal(vector<fp_t> &coefficients, vector<fp_t> &roots) {
         auto p = -C / SCF(2.0L);
         auto q = sqrt(pr_product_difference(p, p, B, D));
         if (std::numeric_limits<fp_t>::epsilon() > abs(q)) {
-            auto r = p + copysign(q,p*q);
+            auto r = p + copysign(q, p * q);
             if (std::numeric_limits<fp_t>::epsilon() > abs(r)) {
                 roots[x1] = D / B;
                 roots[x2] = -roots[x1];
@@ -118,10 +118,10 @@ void solveReal(vector<fp_t> &coefficients, vector<fp_t> &roots) {
         complex<fp_t> y1, y2;
         if (s == 0) {
             y1 = pow(-t, SCF(1.0L / 3.0L));
-            y2 = fmaComplex(y1,-SCFC((SCFC(1.iF)*SCFC(sqrt(SCF(3.0L)))-SCFC(1.0L))/SCFC(2.0L)),b);
+            y2 = fmaComplex(y1, -SCFC((SCFC(1.iF) * SCFC(sqrt(SCF(3.0L))) - SCFC(1.0L)) / SCFC(2.0L)), b);
             y1 = b - y1;
         } else {
-            auto u = sqrt(SCFC(s * SCF(4.0L/3.0L)));
+            auto u = sqrt(SCFC(s * SCF(4.0L / 3.0L)));
             auto v = asin(SCFC(SCF(3.0L) * t) / (s * u)) / SCF(3.0L);
             auto w = copysign((numbers::pi_v<fp_t> / SCF(3.0L)), v.real()) - v;
             y1 = fmaComplex(-sin(v), u, b);
@@ -131,10 +131,12 @@ void solveReal(vector<fp_t> &coefficients, vector<fp_t> &roots) {
         //roots[x2] = copysign(hypot(y2.real(), y2.imag()), y2.real());
         //roots[x1] = copysign(sqrt((y1*complex<fp_t>(y1.real(),-y1.imag())).real()),y1.real());
         //roots[x2] = copysign(sqrt((y2*complex<fp_t>(y2.real(),-y2.imag())).real()),y2.real());
-        roots[x1] = (y1*complex<fp_t>(0,-y1.imag())).real();
-        roots[x2] = (y2*complex<fp_t>(0,-y2.imag())).real();
         //roots[x1] = y1.real();
         //roots[x2] = y2.real();
+//        roots[x1] = (y1 * complex<fp_t>(0, y1.imag())).real();
+//        roots[x2] = (y2 * complex<fp_t>(0, y2.imag())).real();
+        roots[x1] = 0;
+        roots[x2] = 0;
         roots[x3] = roots[x1] + roots[x2] + b;
     }
 }
@@ -144,7 +146,7 @@ auto testPolynomial(unsigned int roots_count, vector<fp_t> &coeffs) {
     fp_t max_absolute_error, max_relative_error;
     vector<fp_t> roots(roots_count), coefficients(roots_count + 1);
     generate_polynomial<fp_t>(roots_count, 0, roots_count, 0,
-                              MAX_DISTANCE, -1, 1, roots, coefficients);
+                              MAX_DISTANCE, 9, 10, roots, coefficients);
     vector<fp_t> roots_computed(roots_count);
     if (roots_count + 1 < 4) {
         coefficients.resize(4);
