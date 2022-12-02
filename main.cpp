@@ -140,14 +140,14 @@ void solveReal(vector<fp_t> &coefficients, vector<fp_t> &roots) {
 }
 template<typename fp_t>
 void comparator(vector<fp_t> &rootsTruth,vector<fp_t> &rootsOut,fp_t &absOut,fp_t &relOut){
-    double abs = 0.0;
-    double rel = 0.0;
+    double abs = 10000.0;
+    double rel = 10000.0;
     for(int i = 0;i < rootsOut.size(); i++){
         double absLoc = std::abs(double(rootsTruth[i])-double(rootsOut[i]));
-        abs = max(absLoc,abs);
-        rel = max(std::abs(
+        abs = min(absLoc,abs);
+        rel = min(std::abs(
                 double(absLoc + std::numeric_limits<fp_t>::epsilon())/
-                double(max(rootsOut[i],rootsTruth[i]) + std::numeric_limits<fp_t>::epsilon())),abs);
+                double(max(rootsOut[i],rootsTruth[i]) + std::numeric_limits<fp_t>::epsilon())),rel);
     }
     absOut = abs;
     relOut = rel;
