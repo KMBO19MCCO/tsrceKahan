@@ -31,13 +31,15 @@ void solve(vector<fp_t> &coefficients, vector<complex<fp_t>> &roots) {
     auto C = coefficients[1];
     auto D = coefficients[0];
 
-    if (fpclassify(A) == FP_ZERO) {
+//    cout << "x^3+" << B << "x^2+" << C << "x+" << D << "=0" << endl;
+
+    if (abs(A) < numeric_limits<fp_t>::epsilon()) {
         roots[x3] = (abs(B) + abs(C) + abs(D)) / A;
         auto p = -C / SCF(2.0L);
         auto q = sqrt(SCCF(pr_product_difference(p, p, B, D)));
-        if (fpclassify(q.imag()) == FP_ZERO) {
+        if (abs(q.imag()) < numeric_limits<fp_t>::epsilon()) {
             auto r = p + copysign(q.real(), p);
-            if (fpclassify(r) == FP_ZERO) {
+            if (abs(r) < numeric_limits<fp_t>::epsilon()) {
                 roots[x1] = D / B;
                 roots[x2] = -roots[x1];
             } else {
@@ -55,13 +57,17 @@ void solve(vector<fp_t> &coefficients, vector<complex<fp_t>> &roots) {
         auto s = fma(SCF(3.0L) * b, b, -c);
         auto t = fma((fma(-b, b, s)), b, -d);
         complex<fp_t> y1, y2;
-        if (fpclassify(s) == FP_ZERO) {
-            y1 = pow(-t, SCF(1.0L / 3.0L));
+        if (abs(s) < numeric_limits<fp_t>::epsilon()) {
+            if (abs(t) < numeric_limits<fp_t>::epsilon()) {
+                t = copysign(numeric_limits<fp_t>::epsilon(), t) + t;
+            }
+//            y1 = pow(SCCF(-t), SCF(1.0L / 3.0L));
+            y1 = cbrt(-t);
             y2 = y1 * (complex<fp_t>(SCF(-1.0L), sqrt(SCF(3.0L)))) / SCF(2.0L);
             roots[x1] = b - y1;
             roots[x2] = fmaComplex(-y1, complex<fp_t>(SCF(-1.0L), sqrt(SCF(3.0L))) / SCF(2.0L), b);
         } else {
-            auto u = sqrt(SCCF(SCF(4.0L / 3.0L) * s));
+            auto u = sqrt((SCF(4.0L / 3.0L) * s));
             auto v = asin(SCCF(SCF(3.0L) * t / s) / u) / SCF(3.0L);
             auto w = copysign(numbers::pi_v<fp_t> / SCF(3.0L), v.real()) - v;
             y1 = u * sin(v);
@@ -75,6 +81,21 @@ void solve(vector<fp_t> &coefficients, vector<complex<fp_t>> &roots) {
 }
 
 template<typename fp_t>
+void comparator(vector<fp_t> &rootsTruth, vector<fp_t> &rootsOut, fp_t &absOut, fp_t &relOut) {
+    double abs = 10000.0;
+    double rel = 10000.0;
+    for (int i = 0; i < rootsOut.size(); i++) {
+        double absLoc = std::abs(double(rootsTruth[i]) - double(rootsOut[i]));
+        abs = min(absLoc, abs);
+        rel = min(std::abs(
+                double(absLoc + std::numeric_limits<fp_t>::epsilon()) /
+                double(max(rootsOut[i], rootsTruth[i]) + std::numeric_limits<fp_t>::epsilon())), rel);
+    }
+    absOut = abs;
+    relOut = rel;
+}
+
+template<typename fp_t>
 auto testPolynomial(unsigned int roots_count, vector<fp_t> &coeffs) {
     fp_t max_absolute_error, max_relative_error;
     vector<fp_t> roots(roots_count), coefficients(roots_count + 1);
@@ -82,8 +103,17 @@ auto testPolynomial(unsigned int roots_count, vector<fp_t> &coeffs) {
                               MAX_DISTANCE, -1, 1, roots, coefficients);
     vector<complex<fp_t>> roots_computed(roots_count);
     solve<fp_t>(coefficients, roots_computed);
-    compare_roots_complex<fp_t>(roots_computed.size(), roots.size(), roots_computed, roots,
-                                max_absolute_error, max_relative_error);
+//    compare_roots_complex<fp_t>(roots_computed.size(), roots.size(), roots_computed, roots,
+//                                max_absolute_error, max_relative_error);
+
+    std::vector<fp_t> roots_to_check_parsed;
+    for (auto root: roots_computed) {
+        if (std::numeric_limits<fp_t>::epsilon() > abs(root.imag())) {
+            roots_to_check_parsed.push_back(root.real());
+        }
+    }
+
+    comparator<fp_t>(roots, roots_to_check_parsed, max_absolute_error, max_relative_error);
     coeffs = coefficients;
     return pair<fp_t, fp_t>(max_absolute_error, max_relative_error);
 }
@@ -135,3 +165,11 @@ int main() {
     delete[] deviations_rel;
     return 0;
 }
+
+//int main() {
+//    unsigned int roots = 3;
+//    vector<fp_t> roots_computed(roots);
+//    auto result = testPolynomial<fp_t>(roots, roots_computed);
+//    cout << "Max deviation absolute: " << result.first << endl;
+//    cout << "Max deviation relative: " << result.second << endl;
+//}
