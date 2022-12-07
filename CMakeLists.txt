@@ -3,7 +3,6 @@ project(tsrceKahan)
 
 set(CMAKE_CXX_STANDARD 23)
 
-
 find_package(OpenMP REQUIRED)
 include_directories(${PROJECT_SOURCE_DIR}/excerpt)
 link_directories(${PROJECT_SOURCE_DIR}/excerpt)
