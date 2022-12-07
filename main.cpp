@@ -7,7 +7,7 @@
 
 #pragma ide diagnostic ignored "openmp-use-default-none"
 
-#define MAX_DISTANCE 10e-5
+#define MAX_DISTANCE 10e-2
 
 using namespace std;
 enum {
@@ -92,7 +92,7 @@ void solveReal(vector<fp_t> &coefficients, vector<fp_t> &roots) {
     auto C = coefficients[1];
     auto D = coefficients[0];
 
-    cout << "x^3+" << B << "x^2+" << C << "x+" << D << "=0" << endl;
+    //cout << "x^3+" << B << "x^2+" << C << "x+" << D << "=0" << endl;
 
     if (abs(A) < numeric_limits<fp_t>::epsilon()) { // unused
         roots[x3] = (abs(B) + abs(C) + abs(D)) / A;
@@ -142,21 +142,6 @@ void solveReal(vector<fp_t> &coefficients, vector<fp_t> &roots) {
 }
 
 template<typename fp_t>
-void comparator(vector<fp_t> &rootsTruth, vector<fp_t> &rootsOut, fp_t &absOut, fp_t &relOut) {
-    double abs = 10000.0;
-    double rel = 10000.0;
-    for (int i = 0; i < rootsOut.size(); i++) {
-        double absLoc = std::abs(double(rootsTruth[i]) - double(rootsOut[i]));
-        abs = min(absLoc, abs);
-        rel = min(std::abs(
-                double(absLoc + std::numeric_limits<fp_t>::epsilon()) /
-                double(max(rootsOut[i], rootsTruth[i]) + std::numeric_limits<fp_t>::epsilon())), rel);
-    }
-    absOut = abs;
-    relOut = rel;
-}
-
-template<typename fp_t>
 auto testPolynomial(unsigned int roots_count, vector<fp_t> &coeffs) {
     fp_t max_absolute_error, max_relative_error;
     vector<fp_t> roots(roots_count), coefficients(roots_count + 1);
@@ -170,7 +155,7 @@ auto testPolynomial(unsigned int roots_count, vector<fp_t> &coeffs) {
     solveReal<fp_t>(coefficients, roots_computed);
     //compare_roots<fp_t>(roots_computed.size(), roots.size(), roots_computed, roots,
     //                    max_absolute_error, max_relative_error);
-    comparator(roots, roots_computed, max_absolute_error, max_relative_error);
+    compare_roots2<fp_t>(roots.size(),roots.size(),roots, roots_computed, max_absolute_error, max_relative_error);
     coeffs = coefficients;
     return pair<fp_t, fp_t>(max_absolute_error, max_relative_error);
 }
@@ -190,7 +175,7 @@ void test2() {
 
 
 int main() {
-    test2();
+    //test2();
     fp_t max_deviation_abs = 0, max_deviation_rel = 0;
     auto cores = omp_get_num_procs();
     auto *deviations_abs = new fp_t[cores];
