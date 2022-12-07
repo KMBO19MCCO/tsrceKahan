@@ -7,7 +7,7 @@
 
 #pragma ide diagnostic ignored "openmp-use-default-none"
 
-#define MAX_DISTANCE 10e-2
+#define MAX_DISTANCE 10e-5
 
 using namespace std;
 enum {
