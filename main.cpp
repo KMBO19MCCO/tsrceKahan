@@ -1,11 +1,11 @@
+#define __FMA__ 1
+
 #include <omp.h>
 #include <cmath>
 #include <vector>
 #include <complex>
 #include <iostream>
 #include <excerpt.h>
-
-//#pragma FP_FAST_FMA
 
 #pragma ide diagnostic ignored "openmp-use-default-none"
 
@@ -61,23 +61,20 @@ void solve(vector<fp_t> &coefficients, vector<complex<fp_t>> &roots) {
         auto t = fma((fma(-b, b, s)), b, -d);
         complex<fp_t> y1, y2;
         if (abs(s) < numeric_limits<fp_t>::epsilon()) {
-            if (abs(t) < numeric_limits<fp_t>::epsilon()) {
-                t = copysign(numeric_limits<fp_t>::epsilon(), t) + t;
-            }
             y1 = cbrt(-t);
-            y2 = y1 * (complex<fp_t>(SCF(-1.0L), sqrt(SCF(3.0L)))) / SCF(2.0L);
             roots[x1] = b - y1;
-            roots[x2] = fmaComplex(-y1, complex<fp_t>(SCF(-1.0L), sqrt(SCF(3.0L))) / SCF(2.0L), b);
+            roots[x2] = fmaComplex(y1, -SCFC((SCFC(1.iF) * SCFC(sqrt(SCF(3.0L))) - SCFC(1.0L)) / SCFC(2.0L)), b);
+            roots[x3] = y1 + fmaComplex(y1, SCFC((SCFC(1.iF) * SCFC(sqrt(SCF(3.0L))) - SCFC(1.0L)) / SCFC(2.0L)), b);
+            return;
         } else {
-            auto u = sqrt((SCF(4.0L / 3.0L) * s));
-            auto v = asin(SCFC(SCF(3.0L) * t / s) / u) / SCF(3.0L);
-            auto w = copysign(numbers::pi_v<fp_t> / SCF(3.0L), v.real()) - v;
-            y1 = u * sin(v);
-            y2 = u * sin(w);
-            roots[x1] = fmaComplex(-u, sin(v), b);
-            roots[x2] = fmaComplex(-u, sin(w), b);
+            auto u = sqrt(SCFC(s / SCF(4.0L / 3.0L)));
+            auto v = asin(SCFC(SCF(3.0L) * t / (s * u))) / SCF(3.0L);
+            auto w = copysign((numbers::pi_v<fp_t> / SCF(3.0L)), v.real()) - v;
+            roots[x1] = fmaComplex(-sin(v), u, b);
+            roots[x2] = fmaComplex(-sin(w), u, b);
+            roots[x3] = roots[x1] + roots[x2] + SCFC(b);
+            return;
         }
-        roots[x3] = y1 + y2 + b;
     }
 }
 
@@ -125,8 +122,8 @@ void solveReal(vector<fp_t> &coefficients, vector<fp_t> &roots) {
             y1 = fmaComplex(-sin(v), u, b);
             y2 = fmaComplex(-sin(w), u, b);
         }
-        roots[x1] = copysign(hypot(y1.real(), y1.imag()), y1.real());
-        roots[x2] = copysign(hypot(y2.real(), y2.imag()), y2.real());
+        roots[x1] = copysign(sqrt((y1*complex<fp_t>(y1.real(),-y1.imag())).real()),y1.real());
+        roots[x2] = copysign(sqrt((y2*complex<fp_t>(y2.real(),-y2.imag())).real()),y2.real());
         roots[x3] = roots[x1] + roots[x2] + b;
     }
 }
@@ -138,16 +135,14 @@ auto testPolynomial(unsigned int roots_count, vector<fp_t> &coeffs) {
     generate_polynomial<fp_t>(roots_count, 0, roots_count, 0,
                               MAX_DISTANCE, -1, 1, roots, coefficients);
     vector<fp_t> roots_computed(roots_count);
-//    vector<complex<fp_t>> roots_computed(roots_count);
     if (roots_count + 1 < 4) {
         coefficients.resize(4);
         coefficients[3] = 0;
     }
     solveReal<fp_t>(coefficients, roots_computed);
-//    solve<fp_t>(coefficients, roots_computed);
-//    compare_roots_complex<fp_t>(roots_computed.size(), roots.size(), roots_computed, roots,
-//                                max_absolute_error, max_relative_error);
-    compare_roots2<fp_t>(roots.size(), roots.size(), roots, roots_computed, max_absolute_error, max_relative_error);
+    //compare_roots<fp_t>(roots_computed.size(), roots.size(), roots_computed, roots,
+    //                    max_absolute_error, max_relative_error);
+    compare_roots2<fp_t>(roots.size(),roots.size(),roots, roots_computed, max_absolute_error, max_relative_error);
     coeffs = coefficients;
     return pair<fp_t, fp_t>(max_absolute_error, max_relative_error);
 }
