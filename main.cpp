@@ -67,19 +67,19 @@ void solve(vector<fp_t> &coefficients, vector<complex<fp_t>> &roots) {
         //                               static_cast<fp_t>(1.0L));
         //auto t = pr_product_difference(b, s, b, b * b) - d;
         complex<fp_t> y1, y2;
-        if (s == 0) {
-            y1 = pow(-t, SCF(1.0L / 3.0L));
+        if (abs(s) < numeric_limits<fp_t>::epsilon()) {
+            y1 = cbrt(-t);
             roots[x1] = b - y1;
-            roots[x2] = fmaComplex(y1,-SCFC((SCFC(1.iF)*SCFC(sqrt(SCF(3.0L)))-SCFC(1.0L))/SCFC(2.0L)),b);
-            roots[x3] = y1 + fmaComplex(y1,SCFC((SCFC(1.iF)*SCFC(sqrt(SCF(3.0L)))-SCFC(1.0L))/SCFC(2.0L)),b);
+            roots[x2] = fmaComplex(y1, -SCFC((SCFC(1.iF) * SCFC(sqrt(SCF(3.0L))) - SCFC(1.0L)) / SCFC(2.0L)), b);
+            roots[x3] = y1 + fmaComplex(y1, SCFC((SCFC(1.iF) * SCFC(sqrt(SCF(3.0L))) - SCFC(1.0L)) / SCFC(2.0L)), b);
             return;
         } else {
-            auto u = sqrt(SCFC(s / SCF(3.0L) * SCF(4.0L)));
-            auto v = asin(SCFC(SCF(3.0L) * t) / (s * u)) / SCF(3.0L);
+            auto u = sqrt(SCFC(s / SCF(4.0L / 3.0L)));
+            auto v = asin(SCFC(SCF(3.0L) * t / (s * u))) / SCF(3.0L);
             auto w = copysign((numbers::pi_v<fp_t> / SCF(3.0L)), v.real()) - v;
             roots[x1] = fmaComplex(-sin(v), u, b);
             roots[x2] = fmaComplex(-sin(w), u, b);
-            roots[x3] = roots[x1] + roots[x2] + b;
+            roots[x3] = roots[x1] + roots[x2] + SCFC(b);
             return;
         }
     }
@@ -92,13 +92,15 @@ void solveReal(vector<fp_t> &coefficients, vector<fp_t> &roots) {
     auto C = coefficients[1];
     auto D = coefficients[0];
 
-    if (std::numeric_limits<fp_t>::epsilon() > abs(A)) { // unused
+    cout << "x^3+" << B << "x^2+" << C << "x+" << D << "=0" << endl;
+
+    if (abs(A) < numeric_limits<fp_t>::epsilon()) { // unused
         roots[x3] = (abs(B) + abs(C) + abs(D)) / A;
         auto p = -C / SCF(2.0L);
         auto q = sqrt(pr_product_difference(p, p, B, D));
-        if (std::numeric_limits<fp_t>::epsilon() > abs(q)) {
-            auto r = p + copysign(q,p*q);
-            if (std::numeric_limits<fp_t>::epsilon() > abs(r)) {
+        if (abs(q) < numeric_limits<fp_t>::epsilon()) {
+            auto r = p + copysign(q, p * q);
+            if (abs(r) < numeric_limits<fp_t>::epsilon()) {
                 roots[x1] = D / B;
                 roots[x2] = -roots[x1];
             } else {
@@ -116,13 +118,13 @@ void solveReal(vector<fp_t> &coefficients, vector<fp_t> &roots) {
         auto s = fma(SCF(3.0L) * b, b, -c);
         auto t = fma(fma(-b, b, s), b, -d);
         complex<fp_t> y1, y2;
-        if (s == 0) {
-            y1 = pow(-t, SCF(1.0L / 3.0L));
-            y2 = fmaComplex(y1,-SCFC((SCFC(1.iF)*SCFC(sqrt(SCF(3.0L)))-SCFC(1.0L))/SCFC(2.0L)),b);
+        if (abs(s) < numeric_limits<fp_t>::epsilon()) {
+            y1 = cbrt(-t);
+            y2 = fmaComplex(y1, -SCFC((SCFC(1.iF) * SCFC(sqrt(SCF(3.0L))) - SCFC(1.0L)) / SCFC(2.0L)), b);
             y1 = b - y1;
         } else {
-            auto u = sqrt(SCFC(s * SCF(4.0L/3.0L)));
-            auto v = asin(SCFC(SCF(3.0L) * t) / (s * u)) / SCF(3.0L);
+            auto u = sqrt(s * SCF(4.0L / 3.0L));
+            auto v = asin(SCFC(SCF(3.0L) * t / (s * u))) / SCF(3.0L);
             auto w = copysign((numbers::pi_v<fp_t> / SCF(3.0L)), v.real()) - v;
             y1 = fmaComplex(-sin(v), u, b);
             y2 = fmaComplex(-sin(w), u, b);
@@ -138,16 +140,17 @@ void solveReal(vector<fp_t> &coefficients, vector<fp_t> &roots) {
         roots[x3] = roots[x1] + roots[x2] + b;
     }
 }
+
 template<typename fp_t>
-void comparator(vector<fp_t> &rootsTruth,vector<fp_t> &rootsOut,fp_t &absOut,fp_t &relOut){
+void comparator(vector<fp_t> &rootsTruth, vector<fp_t> &rootsOut, fp_t &absOut, fp_t &relOut) {
     double abs = 10000.0;
     double rel = 10000.0;
-    for(int i = 0;i < rootsOut.size(); i++){
-        double absLoc = std::abs(double(rootsTruth[i])-double(rootsOut[i]));
-        abs = min(absLoc,abs);
+    for (int i = 0; i < rootsOut.size(); i++) {
+        double absLoc = std::abs(double(rootsTruth[i]) - double(rootsOut[i]));
+        abs = min(absLoc, abs);
         rel = min(std::abs(
-                double(absLoc + std::numeric_limits<fp_t>::epsilon())/
-                double(max(rootsOut[i],rootsTruth[i]) + std::numeric_limits<fp_t>::epsilon())),rel);
+                double(absLoc + std::numeric_limits<fp_t>::epsilon()) /
+                double(max(rootsOut[i], rootsTruth[i]) + std::numeric_limits<fp_t>::epsilon())), rel);
     }
     absOut = abs;
     relOut = rel;
@@ -167,7 +170,7 @@ auto testPolynomial(unsigned int roots_count, vector<fp_t> &coeffs) {
     solveReal<fp_t>(coefficients, roots_computed);
     //compare_roots<fp_t>(roots_computed.size(), roots.size(), roots_computed, roots,
     //                    max_absolute_error, max_relative_error);
-    comparator(roots,roots_computed,max_absolute_error,max_relative_error);
+    comparator(roots, roots_computed, max_absolute_error, max_relative_error);
     coeffs = coefficients;
     return pair<fp_t, fp_t>(max_absolute_error, max_relative_error);
 }
@@ -181,16 +184,17 @@ void test2() {
     coefficients[2] = -2.99996;
     coefficients[3] = 1;
     solve<fp_t>(coefficients, roots_computed);
-    exit(-1);
+    cout << roots_computed[0] << " " << roots_computed[1] << " " << roots_computed[2];
+    exit(0);
 }
 
 
 int main() {
+    test2();
     fp_t max_deviation_abs = 0, max_deviation_rel = 0;
     auto cores = omp_get_num_procs();
     auto *deviations_abs = new fp_t[cores];
     auto *deviations_rel = new fp_t[cores];
-    //test2();
 #pragma omp parallel for
     for (auto i = 0; i < cores; ++i) {
         deviations_abs[i] = 0;
