@@ -1,9 +1,12 @@
+#define __FMA__ 1
+
 #include <omp.h>
 #include <cmath>
 #include <vector>
 #include <complex>
 #include <iostream>
 #include <excerpt.h>
+
 
 #pragma ide diagnostic ignored "openmp-use-default-none"
 
@@ -131,12 +134,12 @@ void solveReal(vector<fp_t> &coefficients, vector<fp_t> &roots) {
         }
         //roots[x1] = copysign(hypot(y1.real(), y1.imag()), y1.real());
         //roots[x2] = copysign(hypot(y2.real(), y2.imag()), y2.real());
-        //roots[x1] = copysign(sqrt((y1*complex<fp_t>(y1.real(),-y1.imag())).real()),y1.real());
-        //roots[x2] = copysign(sqrt((y2*complex<fp_t>(y2.real(),-y2.imag())).real()),y2.real());
+        roots[x1] = copysign(sqrt((y1*complex<fp_t>(y1.real(),-y1.imag())).real()),y1.real());
+        roots[x2] = copysign(sqrt((y2*complex<fp_t>(y2.real(),-y2.imag())).real()),y2.real());
         //roots[x1] = (y1*complex<fp_t>(0,-y1.imag())).real();
         //roots[x2] = (y2*complex<fp_t>(0,-y2.imag())).real();
-        roots[x1] = y1.real();
-        roots[x2] = y2.real();
+        //roots[x1] = y1.real();
+        //roots[x2] = y2.real();
         roots[x3] = roots[x1] + roots[x2] + b;
     }
 }
