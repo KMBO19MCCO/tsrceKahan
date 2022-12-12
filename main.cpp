@@ -10,11 +10,11 @@
 
 #pragma ide diagnostic ignored "openmp-use-default-none"
 
-#define MAX_DISTANCE 10e-5
+#define MAX_DISTANCE 1e-25
 
 using namespace std;
 
-typedef float fp_t;
+typedef double fp_t;
 
 
 
@@ -23,16 +23,16 @@ auto testPolynomial(unsigned int roots_count, vector<fp_t> &coeffs) {
     fp_t max_absolute_error, max_relative_error;
     vector<fp_t> roots(roots_count), coefficients(roots_count + 1);
     generate_polynomial<fp_t>(roots_count, 0, roots_count, 0,
-                              MAX_DISTANCE, -1, 1, roots, coefficients);
+                              MAX_DISTANCE, MAX_DISTANCE, 1e+1, roots, coefficients);
     vector<fp_t> roots_computed(roots_count);
     if (roots_count + 1 < 4) {
         coefficients.resize(4);
         coefficients[3] = 0;
     }
     tsrceKahanReal<fp_t>(coefficients, roots_computed);
-    compare_roots<fp_t>(roots_computed.size(), roots.size(), roots_computed, roots,
-                        max_absolute_error, max_relative_error);
-    //compare_roots2<fp_t>(roots.size(),roots.size(),roots, roots_computed, max_absolute_error, max_relative_error);
+    //compare_roots<fp_t>(roots_computed.size(), roots.size(), roots_computed, roots,
+    //                    max_absolute_error, max_relative_error);
+    compare_roots2<fp_t>(roots.size(),roots.size(),roots, roots_computed, max_absolute_error, max_relative_error);
     coeffs = coefficients;
     return pair<fp_t, fp_t>(max_absolute_error, max_relative_error);
 }
